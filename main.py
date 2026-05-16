@@ -1,22 +1,37 @@
+"""
+계약서 자동화 시스템 - 메인 진입점
+
+GUI 애플리케이션 시작
+"""
+
 import tkinter as tk
-from src.gui import ContractGui
 import sys
 import os
+from pathlib import Path
+
+# 실행 경로 설정 (EXE 배포 고려)
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys.executable).parent
+else:
+    BASE_DIR = Path(__file__).parent.parent
+
+# 경로 추가
+sys.path.insert(0, str(BASE_DIR))
+
+from src.gui import ContractGui
+from src.utils import ensure_directories
+
 
 def main():
-    # 실행 시 현재 경로를 기준으로 설정 (EXE 배포 고려)
-    if getattr(sys, 'frozen', False):
-        base_dir = os.path.dirname(sys.executable)
-    else:
-        base_dir = os.path.dirname(os.path.abspath(__file__))
+    """메인 함수"""
+    # 필요한 디렉토리 생성
+    ensure_directories()
 
+    # GUI 시작
     root = tk.Tk()
     app = ContractGui(root)
-    
-    # 기본 경로 설정 예시 (선택 사항)
-    # app.excel_entry.insert(0, os.path.join(os.getcwd(), "명단.xlsx"))
-    
     root.mainloop()
+
 
 if __name__ == "__main__":
     main()
