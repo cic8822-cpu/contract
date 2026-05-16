@@ -1,18 +1,133 @@
-# .gitignore 설정
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
 env/
 venv/
+ENV/
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
 *.spec
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# User files (sample data)
 *.xlsx
 *.xls
 *.hwp
 *.hwpx
+
+# Output
+/outputs/
+/dist/
+/build/
+
+# Config
 .claude/
 .bkit/
 .pdca-status.json
+
+# Logs
+*.log
+logs/
+
+# Temporary
+/temp/
+*.tmp
+.temp/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller output
+dist/
+build/
+*.spec
+
+# Editor backups
+*~
+*.swp
+*.swo
+*.swn
+
+# Local settings
+.local/
+.settings/
+
+# Cache
+.cache/
+*.cache
