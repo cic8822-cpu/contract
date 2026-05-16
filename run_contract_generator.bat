@@ -58,12 +58,12 @@ if %errorlevel% neq 0 (
 )
 echo ✓ 필수 패키지 확인 완료
 
-REM 프로그램 실행
+REM 프로그램 실행 (Python 캐시 무시: -B 플래그)
 echo [3/3] 프로그램 시작 중...
 echo.
 echo ============================================================================
 echo.
-python main.py
+python -B main.py
 set PYEXIT=%errorlevel%
 
 if %PYEXIT% neq 0 (

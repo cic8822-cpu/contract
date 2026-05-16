@@ -2,6 +2,9 @@
 계약서 자동화 시스템 - 메인 진입점
 
 GUI 애플리케이션 시작
+
+**중요**: Python 캐시 무시하고 실행하려면:
+  python -B main.py
 """
 
 import tkinter as tk
