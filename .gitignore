@@ -131,3 +131,34 @@ build/
 # Cache
 .cache/
 *.cache
+
+# Build artifacts (keep dist/ for distribution)
+build/
+*.egg-info/
+
+# Virtual environments
+build_env/
+.venv/
+venv/
+
+# Linting cache
+.ruff_cache/
+
+# BlueKiwi/Agent files
+.bkit/
+.pdca-status.json
+
+# Sensitive data (personal information)
+/data/
+/outputs/
+*.xlsx
+*.xls
+
+# Generated files
+*.log
+*.tmp
+
+# Compiled Python files
+__pycache__/
+*.pyc
+*.pyo
