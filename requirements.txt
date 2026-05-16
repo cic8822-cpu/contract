@@ -1,0 +1,29 @@
+# Contract Generator Requirements
+# Python 3.9+
+
+# Core dependencies
+openpyxl==3.10.10          # Excel file reading/writing
+lxml==4.9.3                # XML parsing for HWPX
+
+# Logging
+loguru==0.7.2              # Enhanced logging with rotation
+
+# GUI
+# (tkinter는 Python 기본 라이브러리에 포함됨)
+
+# Utilities
+python-dotenv==1.0.0       # Environment variables
+
+# Development & Testing
+pytest==7.4.3              # Unit testing framework
+pytest-cov==4.1.0          # Code coverage
+pytest-mock==3.12.0        # Mocking for tests
+
+# Build & Packaging
+PyInstaller==6.1.0         # EXE packaging
+pywin32==306               # Windows-specific utilities (optional, for Windows shortcuts)
+
+# Code quality
+black==23.12.1             # Code formatter
+flake8==6.1.0              # Linter
+mypy==1.7.1                # Type checking (optional)
