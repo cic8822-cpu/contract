@@ -3,13 +3,19 @@
 
 GUI 애플리케이션 시작
 
-**중요**: Python 캐시 무시하고 실행하려면:
-  python -B main.py
+**중요**: Python 캐시를 완전히 비활성화합니다.
+  - sys.dont_write_bytecode = True
+  - 이것으로 .pyc 파일이 생성되지 않습니다.
 """
 
-import tkinter as tk
 import sys
 import os
+
+# Python 바이트코드 캐시 완전 비활성화 (가장 중요!)
+sys.dont_write_bytecode = True
+os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
+
+import tkinter as tk
 from pathlib import Path
 
 # 실행 경로 설정 (EXE 배포 고려)
