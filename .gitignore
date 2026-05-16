@@ -31,7 +31,7 @@ Thumbs.db
 
 # Build artifacts
 build/
-dist/
+# dist/ - 배포용 EXE 파일을 포함하므로 제외하지 않음
 *.manifest
 
 # Linting and cache
