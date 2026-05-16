@@ -343,6 +343,7 @@ def normalize_value(
     """값을 정규화된 문자열로 변환합니다.
 
     - None/NaN 처리
+    - 날짜/시간 처리 (datetime 객체에서 날짜만 추출)
     - 공백 제거 (선택)
     - 문자열 변환
 
@@ -361,6 +362,8 @@ def normalize_value(
         "김철수"
         >>> normalize_value(123)
         "123"
+        >>> normalize_value(datetime(2026, 3, 1, 0, 0))
+        "2026-03-01"
     """
     # None 처리
     if value is None:
@@ -375,8 +378,12 @@ def normalize_value(
     except ImportError:
         pass
 
-    # 문자열 변환
-    result = str(value)
+    # datetime 객체 처리 (날짜만 추출)
+    if isinstance(value, datetime):
+        result = value.strftime("%Y-%m-%d")
+    else:
+        # 문자열 변환
+        result = str(value)
 
     # 공백 처리
     if strip:
