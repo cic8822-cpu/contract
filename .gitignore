@@ -3,37 +3,16 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-env/
-venv/
-ENV/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
 MANIFEST
 
-# PyInstaller
-*.manifest
-*.spec
-
 # Virtual environments
+.venv/
 venv/
 ENV/
 env/
+build_env/
 
 # IDE
 .vscode/
@@ -50,115 +29,35 @@ Thumbs.db
 .Spotlight-V100
 .Trashes
 
-# User files (sample data)
-*.xlsx
-*.xls
-*.hwp
-*.hwpx
-
-# Output
-/outputs/
-/dist/
-/build/
-
-# Config
-.claude/
-.bkit/
-.pdca-status.json
-
-# Logs
-*.log
-logs/
-
-# Temporary
-/temp/
-*.tmp
-.temp/
-
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-
-# OS specific
-.DS_Store
-Thumbs.db
-
-# Test coverage
-.coverage
-htmlcov/
-.pytest_cache/
-
-# Distribution / packaging
-.Python
+# Build artifacts
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+*.manifest
 
-# PyInstaller output
-dist/
-build/
-*.spec
-
-# Editor backups
-*~
-*.swp
-*.swo
-*.swn
-
-# Local settings
-.local/
-.settings/
-
-# Cache
+# Linting and cache
+.ruff_cache/
 .cache/
 *.cache
+.pytest_cache/
 
-# Build artifacts (keep dist/ for distribution)
-build/
-*.egg-info/
-
-# Virtual environments
-build_env/
-.venv/
-venv/
-
-# Linting cache
-.ruff_cache/
-
-# BlueKiwi/Agent files
+# Agent/Tool files
 .bkit/
 .pdca-status.json
+.claude/
 
 # Sensitive data (personal information)
 /data/
 /outputs/
+/완료/
 *.xlsx
 *.xls
 
 # Generated files
 *.log
+logs/
 *.tmp
+.temp/
 
-# Compiled Python files
-__pycache__/
-*.pyc
-*.pyo
+# Other
+*.local/
+.settings/
