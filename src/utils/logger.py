@@ -35,10 +35,10 @@ class MemoryLogBuffer:
         self.line_count = 0
         self.lock_reset = False
 
-    def write(self, message: str) -> None:
-        """로그 메시지 작성"""
+    def write(self, message: str) -> int:
+        """로그 메시지 작성 - loguru와 호환되도록 int 반환"""
         if self.lock_reset:
-            return
+            return len(message) if message else 0
 
         self.buffer.write(message)
         self.line_count += message.count("\n")
@@ -46,6 +46,9 @@ class MemoryLogBuffer:
         # 버퍼 크기 초과 시 오래된 내용 제거
         if self.line_count > self.max_lines:
             self._trim_buffer()
+
+        # loguru는 쓰기된 바이트 수를 기대함
+        return len(message) if message else 0
 
     def _trim_buffer(self) -> None:
         """버퍼 크기 초과 시 오래된 50%의 내용 제거"""
@@ -85,26 +88,52 @@ class MemoryLogBuffer:
 _memory_buffer = MemoryLogBuffer(max_lines=LOG_BUFFER_MAX_LINES)
 
 
+class _MemorySink:
+    """메모리 버퍼용 sink 클래스 - PyInstaller 호환성"""
+
+    def __init__(self, buffer):
+        self.buffer = buffer
+
+    def write(self, message):
+        """loguru sink write method"""
+        try:
+            if message:
+                self.buffer.write(message)
+                return len(message)
+            return 0
+        except Exception:
+            # 오류 무시하고 계속
+            return len(message) if message else 0
+
+
 def _setup_logger() -> None:
     """loguru 로거 설정"""
     # 기본 핸들러 제거
     _logger.remove()
 
-    # 콘솔 출력 (stderr)
-    _logger.add(
-        sys.stderr,
-        level=LOG_LEVEL,
-        format=LOG_FORMAT,
-        colorize=True,
-    )
+    # 콘솔 출력 (stderr) - 가장 안정적
+    try:
+        _logger.add(
+            sys.stderr,
+            level=LOG_LEVEL,
+            format=LOG_FORMAT,
+            colorize=True,
+        )
+    except Exception:
+        pass
 
-    # 메모리 버퍼에 기록
-    _logger.add(
-        _memory_buffer.write,
-        level=LOG_LEVEL,
-        format=LOG_FORMAT,
-        colorize=False,  # 메모리 버퍼는 색상 코드 불필요
-    )
+    # 메모리 버퍼에 기록 - 클래스 기반 sink
+    try:
+        memory_sink = _MemorySink(_memory_buffer)
+        _logger.add(
+            memory_sink.write,
+            level=LOG_LEVEL,
+            format=LOG_FORMAT,
+            colorize=False,  # 메모리 버퍼는 색상 코드 불필요
+        )
+    except Exception:
+        # 메모리 버퍼 설정 실패 시에도 계속 진행 (콘솔 로깅은 작동)
+        pass
 
 
 # 초기화

@@ -1,0 +1,574 @@
+깊게 숨을 쉬고, 이 프로젝트를 체계적으로 분석하고 설계하겠습니다. 
+
+코딩 AI 프롬프트 전문가 팀의 협업 프로세스로 진행하겠습니다.
+
+---
+
+## 🔷 1단계: Sam의 구조 분석
+
+### 작업 목적 및 범위 정의
+
+**핵심 목표:**
+- 비개발자용 Windows 데스크톱 앱: Excel 행 → 다중 HWPX 문서 자동 생성
+- 플레이스홀더 기반 치환 ({{이름}}, {{주소}} 등)
+- GUI를 통한 파일 선택 및 배치 처리
+
+**작업 범위:**
+- 단일 PC 실행 환경 (오프라인 완전 독립)
+- Python → Windows EXE 변환 (PyInstaller)
+- HWPX는 ZIP 기반 컨테이너 처리
+- 원본 템플릿 보존, 출력 파일 다중 생성
+
+**예상 결과물:**
+- `contract_generator.exe` (단일 배포 파일)
+- 30개 Excel 행 → 30개 개별 HWPX 파일 생성
+
+---
+
+### 컨텍스트 요구사항 분석
+
+| 요소 | 내용 |
+|------|------|
+| **사용자 프로필** | 비개발자, GUI 필수 |
+| **파일 입력** | Excel (.xlsx), HWPX 템플릿 (.hwpx) |
+| **처리 로직** | 행 단위 배치 → 플레이스홀더 치환 |
+| **출력** | 개별 HWPX 파일 (파일명: 선택 칼럼 또는 행번호) |
+| **주요 제약** | 오프라인, 한글 인코딩, HWPX XML 구조 보존 |
+
+---
+
+### 프롬프트 구조 설계
+
+**섹션 구성:**
+```
+1. 프로젝트 개요 (목표, 아키텍처)
+2. 폴더 구조 (모듈식 설계)
+3. 핵심 모듈별 완전한 코드
+4. 통합 구성 (requirements.txt, build script)
+5. 검증 및 테스트 (dry-run, 체크리스트)
+```
+
+---
+
+## 🔶 2단계: Jenny의 기술적 강화
+
+### 기술 스택 명세
+
+**선택 사유:**
+- **Python 3.11+**: 타입 힌팅, 빠른 ZIP 처리
+- **openpyxl**: 가장 안정적인 Excel 읽기 라이브러리
+- **zipfile**: HWPX ZIP 처리 (표준 라이브러리)
+- **pathlib, shutil, tempfile, re**: 파일 조작, 정규표현식 치환
+- **PySide6**: Qt 기반 전문적 GUI (tkinter보다 기능 풍부, 비상업용 무료)
+- **PyInstaller**: Windows EXE 패킹 (자동 의존성 번들)
+- **loguru**: 한글 로깅 (사용자 친화적)
+
+---
+
+### 코드 아키텍처
+
+```
+contract_generator/
+├── main.py                 # GUI 진입점
+├── core/
+│   ├── excel_reader.py     # Excel 읽기, 검증
+│   ├── hwpx_processor.py   # ZIP 처리, 플레이스홀더 치환
+│   └── validator.py        # Dry-run 검증
+├── ui/
+│   ├── main_window.py      # PySide6 메인 창
+│   ├── validators_dialog.py # 검증 결과 표시
+│   └── styles.qss          # 스타일시트 (한글 폰트)
+├── utils/
+│   ├── logger.py           # 로깅 설정
+│   ├── constants.py        # 상수, 에러 메시지
+│   └── helpers.py          # 공통 유틸
+├── resources/
+│   ├── icon.ico            # 윈도우 아이콘
+│   └── sample_data.xlsx    # 테스트용 샘플
+└── build/                  # PyInstaller 빌드 스크립트
+    └── build.py
+```
+
+---
+
+### 핵심 기술 결정사항
+
+**1. HWPX ZIP 처리 전략**
+```python
+# HWPX는 OpenDocument 기반 ZIP
+# content.xml, styles.xml, settings.xml 포함
+# 각 XML 파일에서 {{PLACEHOLDER}} 정규식으로 검색/치환
+# 원본 구조 보존: 새로운 임시 디렉토리에 복사 후 처리
+```
+
+**2. 플레이스홀더 매칭**
+```python
+# 정규식: r'\{\{([A-Za-z0-9_가-힣]+)\}\}'
+# Excel 칼럼명 ↔ HWPX 플레이스홀더 자동 매핑
+# 대소문자/언더스코어 정규화 필요
+```
+
+**3. 에러 처리 계층**
+```
+사용자 입력 검증
+  ↓
+Excel 칼럼 / HWPX 플레이스홀더 매핑 검증
+  ↓
+Dry-run (실제 생성 전 시뮬레이션)
+  ↓
+배치 생성 (에러 발생 시 부분 롤백)
+```
+
+**4. 인코딩 안전성**
+```python
+# HWPX XML은 UTF-8
+# Excel도 UTF-8로 읽음
+# 파일명: CP949 또는 UTF-8 조심스럽게 처리
+```
+
+---
+
+## 🔹 3단계: Will의 최종 검토
+
+### 완성도 검증
+
+✅ **모든 요구사항 반영:**
+- CRUD 배치 처리 (30행 → 30파일)
+- 플레이스홀더 기반 동적 치환
+- GUI + EXE 패킹
+- 에러 핸들링 (미싱 칼럼, 빈값, 권한 문제)
+- Dry-run 검증
+- 파일명 생성 (이름 칼럼 → 행번호 폴백)
+
+✅ **실행 가능성:**
+- 모든 모듈 명확한 책임 분리
+- 단계별 테스트 가능
+- 의존성 최소화 (표준 라이브러리 최대 활용)
+
+✅ **비개발자 친화성:**
+- 명확한 에러 메시지 (한글)
+- 프로그레스 바 + 상세 로그
+- 검증 결과 시각화
+
+---
+
+### 실행 가능성 평가
+
+**Claude Code에서의 구현:**
+- ✅ 모듈별 독립적 생성 가능
+- ✅ GUI 코드는 PySide6 문서 기반 (안정적)
+- ✅ ZIP/XML 처리는 표준 라이브러리
+- ✅ 테스트 데이터 포함으로 검증 용이
+
+**예상 개발 시간:**
+- 단일 파일: ~2,000행 (모듈식 구조)
+- 복잡도: 중간 (ZIP 처리 + GUI 통합)
+
+---
+
+### 최적화 전략
+
+1. **모듈 간 의존성 최소화** → 각 모듈 독립 테스트
+2. **로깅 일관성** → 모든 에러/진행 상황 기록
+3. **사용자 피드백** → 프로그레스, 결과 요약 화면
+4. **재사용성** → 설정 저장 (마지막 선택 파일 경로)
+
+---
+
+# 📋 최종 프롬프트
+
+## 🎯 작업 목표
+
+**한국어 계약서 대량 생성 Windows 데스크톱 앱 개발**
+
+비개발자가 Excel 데이터와 HWPX 계약서 템플릿을 입력하면, 자동으로 다중 개별 계약서 HWPX 파일을 생성하는 GUI 기반 Windows EXE 프로그램을 구축합니다. 각 Excel 행은 1개의 독립적인 HWPX 문서를 생성하며, {{이름}}, {{주소}} 같은 플레이스홀더를 해당 칼럼 값으로 자동 치환합니다.
+
+---
+
+## 📋 배경 컨텍스트
+
+- **사용자**: 비기술 배경, GUI 필수
+- **입력**: Excel 파일 (.xlsx) + HWPX 템플릿 (.hwpx)
+- **처리**: 행 단위 배치 → 다중 문서 자동 생성
+- **출력**: 개별 HWPX 파일 (이름 칼럼으로 명명, 없으면 행번호)
+- **환경**: Windows PC, 오프라인 완전 독립
+- **핵심 기술**: HWPX는 ZIP 기반 컨테이너 (XML 재패킹)
+
+---
+
+## 🔧 기술 스택
+
+| 구성 | 선택 | 버전 |
+|------|------|------|
+| **언어** | Python | 3.11+ |
+| **Excel 읽기** | openpyxl | 3.10+ |
+| **GUI** | PySide6 | 6.7+ |
+| **파일 처리** | zipfile, pathlib, shutil | 표준 라이브러리 |
+| **정규식** | re | 표준 라이브러리 |
+| **로깅** | loguru | 0.7+ |
+| **EXE 패킹** | PyInstaller | 6.0+ |
+| **OS** | Windows 10/11 | — |
+
+---
+
+## 📐 프로젝트 구조
+
+```
+contract_generator/
+│
+├── main.py                          # 진입점 (GUI 실행)
+│
+├── core/
+│   ├── __init__.py
+│   ├── excel_reader.py              # Excel 파일 읽기, 검증
+│   ├── hwpx_processor.py            # HWPX ZIP 처리, 플레이스홀더 치환
+│   └── validator.py                 # Dry-run 검증 엔진
+│
+├── ui/
+│   ├── __init__.py
+│   ├── main_window.py               # PySide6 메인 창
+│   ├── progress_dialog.py           # 배치 처리 진행률 표시
+│   └── styles.qss                   # Qt 스타일 (한글 폰트, 색상)
+│
+├── utils/
+│   ├── __init__.py
+│   ├── logger.py                    # Loguru 기반 로깅 설정
+│   ├── constants.py                 # 상수, 에러 메시지
+│   └── helpers.py                   # 공통 함수 (경로, 인코딩)
+│
+├── resources/
+│   ├── icon.ico                     # Windows 창 아이콘
+│   ├── sample_template.hwpx         # 테스트용 샘플 템플릿
+│   └── sample_data.xlsx             # 테스트용 샘플 Excel
+│
+├── build/
+│   └── build.py                     # PyInstaller 빌드 스크립트
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_excel_reader.py         # 유닛 테스트
+│   ├── test_hwpx_processor.py
+│   └── test_validator.py
+│
+├── requirements.txt                 # Python 의존성
+├── README.md                        # 사용자 가이드 + 개발자 문서
+└── .gitignore
+```
+
+---
+
+## 📝 상세 요구사항
+
+### 필수 요구사항
+
+1. **Excel 파일 처리**
+   - `.xlsx` 파일 읽기 (openpyxl 사용)
+   - 첫 행을 칼럼명으로 인식
+   - 각 행을 1개 계약서로 변환
+   - 30행 입력 → 30개 출력 파일 생성
+
+2. **HWPX 플레이스홀더 치환**
+   - HWPX를 ZIP으로 열기
+   - 내부 모든 XML/텍스트 파일 검색
+   - `{{FIELD_NAME}}` 형식의 플레이스홀더 식별
+   - Excel 칼럼명과 자동 매핑
+   - 플레이스홀더를 해당 값으로 치환
+   - 수정된 내용을 새로운 HWPX로 다시 압축
+
+3. **파일명 자동 생성**
+   - 사용자가 선택한 칼럼 (예: "이름")을 파일명 기준으로 사용
+   - 예: `이름` 칼럼이 "김철수"면 → `김철수.hwpx`
+   - 빈값이거나 선택 칼럼 없으면 → `row_1.hwpx`, `row_2.hwpx`
+   - 파일명 중복 시 → `김철수_1.hwpx`, `김철수_2.hwpx`
+
+4. **GUI (비개발자 친화)**
+   - 메인 창: 파일 선택 버튼 (Excel, 템플릿)
+   - 출력 폴더 선택
+   - "문제 진단" 버튼 → Dry-run 검증 결과 표시
+   - "생성 시작" 버튼 → 배치 처리 (프로그레스 바)
+   - 로그 출력 영역 (진행 상황, 에러)
+   - 완료/에러 요약 팝업
+
+5. **검증 (Dry-run)**
+   - Excel 칼럼명 추출
+   - HWPX 내 모든 플레이스홀더 추출
+   - 매핑 가능 여부 분석
+   - 누락된 칼럼 / 미사용 플레이스홀더 목록 표시
+   - 실제 생성 전 사용자가 확인할 수 있도록
+
+6. **에러 처리 (모두 포함)**
+   - Excel 파일 손상 → 명확한 에러 메시지
+   - HWPX 파일 유효하지 않음 → 복구 불가 메시지
+   - 필수 칼럼 누락 → 어떤 칼럼이 없는지 명시
+   - 빈 값 → 경고하고 빈 문자열로 치환 (또는 스킵 옵션)
+   - 파일 권한 문제 → "출력 폴더를 확인하세요" 메시지
+   - 디스크 용량 부족 → 경고
+
+7. **파일 보존**
+   - 원본 Excel 파일 → 읽기 전용, 수정 안함
+   - 원본 HWPX 템플릿 → 절대 수정 안함
+   - 모든 처리는 임시 폴더에서 진행 후 최종 출력 폴더로 복사
+
+---
+
+### 선택적 요구사항
+
+1. 설정 저장 (마지막 선택 파일 경로, 선호 칼럼)
+2. HWPX 내 이미지 포함 문서에 대한 안전성 검증
+3. 배치 작업 취소 기능
+4. 생성된 파일 자동으로 탐색기로 열기
+5. 로그 파일 자동 저장 (`logs/` 디렉토리)
+
+---
+
+## ⚠️ 제약사항 및 주의사항
+
+- **오프라인**: 인터넷 연결 불필요, 모든 처리 로컬
+- **HWPX 보존**: 원본 포맷, 서식, 이미지 손상 방지
+  - XML 파싱 시 `xml.etree.ElementTree` (간단) vs `lxml` (고급)
+  - 권장: `ElementTree` (표준, 안정적)
+  - 주의: XML 정규식 치환 시 태그 구조 훼손 금지
+  - 안전한 접근: XML 파서로 노드 단위 처리
+- **한글 인코딩**: UTF-8 일관성 유지
+- **파일명**: Windows 예약어 제외 (CON, LPT, PRN 등)
+- **메모리**: 대용량 Excel (10,000행+) 시 청크 처리
+- **Hancom Office 불필요**: HWPX는 ZIP이므로 직접 처리 가능
+
+---
+
+## 📐 코드 스타일 가이드
+
+- **언어**: Python (타입 힌팅 필수)
+- **패키지 구조**: 모듈식 (각 모듈 < 500줄)
+- **함수 정의**:
+  ```python
+  def process_hwpx(
+      template_path: Path,
+      data: Dict[str, str],
+      output_path: Path
+  ) -> Tuple[bool, str]:
+      """HWPX 플레이스홀더 치환 및 저장.
+      
+      Args:
+          template_path: HWPX 템플릿 경로
+          data: {칼럼명: 값} 딕셔너리
+          output_path: 출력 HWPX 경로
+      
+      Returns:
+          (성공 여부, 메시지)
+      """
+  ```
+- **에러 메시지**: 사용자 친화적 한글
+  ```python
+  ERROR_EXCEL_INVALID = "Excel 파일을 읽을 수 없습니다. 파일이 손상되었거나 이미 열려 있을 수 있습니다."
+  ERROR_HWPX_INVALID = "HWPX 템플릿 파일이 유효하지 않습니다. 올바른 계약서 파일을 선택해 주세요."
+  ```
+- **로깅**:
+  ```python
+  from utils.logger import logger
+  logger.info("배치 처리 시작: 30개 행")
+  logger.warning(f"칼럼 누락: {missing_columns}")
+  logger.error("파일 생성 실패", exc_info=True)
+  ```
+- **변수명**: 한글 변수 금지, 영문 + 한글 주석
+  ```python
+  contract_data = {}  # 계약 데이터
+  placeholder_map = {}  # 플레이스홀더 ↔ 칼럼 매핑
+  ```
+
+---
+
+## 🧪 테스트 요구사항
+
+1. **유닛 테스트** (unittest 또는 pytest)
+   - `test_excel_reader.py`: 정상/손상 Excel 읽기
+   - `test_hwpx_processor.py`: 플레이스홀더 치환
+   - `test_validator.py`: Dry-run 검증
+
+2. **통합 테스트**
+   - 샘플 데이터로 end-to-end 생성 테스트
+   - 30행 × 5 다양한 플레이스홀더 검증
+
+3. **테스트 커버리지**: 70% 이상
+
+4. **테스트 데이터 제공**
+   - `sample_data.xlsx`: 5개 샘플 행 (이름, 주소, 계약일, 계약금액)
+   - `sample_template.hwpx`: {{이름}}, {{주소}}, {{계약일}}, {{계약금액}} 포함
+
+---
+
+## 📤 예상 출력 형식
+
+### 폴더 구조 (배치 생성 후)
+
+```
+output_folder/
+├── 김철수.hwpx
+├── 이순신.hwpx
+├── 박영희.hwpx
+└── row_4.hwpx          # 이름이 없는 경우
+```
+
+### 로그 출력
+
+```
+[2025-01-15 14:32:10] ✓ Excel 파일 로드: sample_data.xlsx (5개 행)
+[2025-01-15 14:32:11] ✓ HWPX 템플릿 검증: 4개 플레이스홀더 발견
+[2025-01-15 14:32:12] ✓ Dry-run 완료: 모든 칼럼이 매핑됨
+[2025-01-15 14:32:13] → 1/5: 김철수.hwpx 생성 중...
+[2025-01-15 14:32:14] ✓ 1/5: 김철수.hwpx 완료
+...
+[2025-01-15 14:32:18] ========== 배치 완료 ==========
+[2025-01-15 14:32:18] 총 5개 파일 생성 성공
+[2025-01-15 14:32:18] 출력 폴더: C:\Users\...\output
+```
+
+### 검증 결과 팝업 (Dry-run)
+
+```
+✓ Excel 칼럼 (5개): 이름, 주소, 계약일, 계약금액, 비고
+
+✓ HWPX 플레이스홀더 (4개): {{이름}}, {{주소}}, {{계약일}}, {{계약금액}}
+
+✓ 매핑 가능: 이름, 주소, 계약일, 계약금액
+
+! 미사용 칼럼: 비고
+
+생성을 진행해도 괜찮습니다.
+[생성 시작]  [취소]
+```
+
+---
+
+## 💡 구현 핵심 포인트
+
+### 1. HWPX ZIP 처리
+
+```python
+# 1. ZIP으로 열기
+# 2. content.xml, styles.xml 등 추출
+# 3. 정규식으로 {{PLACEHOLDER}} 찾기
+# 4. 값으로 치환
+# 5. 수정된 내용 다시 압축
+# 6. 새로운 HWPX로 저장
+```
+
+### 2. 플레이스홀더 추출
+
+```python
+import re
+
+def extract_placeholders(text: str) -> Set[str]:
+    """{{이름}}, {{주소}} 형식의 플레이스홀더 추출."""
+    pattern = r'\{\{([A-Za-z0-9_가-힣]+)\}\}'
+    return set(re.findall(pattern, text))
+
+def replace_placeholder(text: str, data: Dict[str, str]) -> str:
+    """플레이스홀더를 값으로 치환."""
+    for key, value in data.items():
+        placeholder = f"{{{{{key}}}}}"
+        text = text.replace(placeholder, value or "")
+    return text
+```
+
+### 3. 임시 폴더 + 안전한 처리
+
+```python
+import tempfile
+from pathlib import Path
+
+with tempfile.TemporaryDirectory() as temp_dir:
+    # 1. HWPX ZIP 추출
+    extract_hwpx(template_path, temp_dir)
+    
+    # 2. XML 파일 수정
+    modify_xml_files(temp_dir, data)
+    
+    # 3. 새로운 HWPX 생성
+    create_hwpx(temp_dir, output_path)
+    
+# temp_dir 자동 삭제 (예외 발생해도)
+```
+
+### 4. 배치 처리 (부분 에러 처리)
+
+```python
+results = []
+for idx, row in enumerate(excel_data, 1):
+    try:
+        output_file = process_single_contract(row, template_path)
+        results.append((idx, "✓", output_file))
+    except Exception as e:
+        results.append((idx, "✗", str(e)))
+        logger.error(f"행 {idx} 실패", exc_info=True)
+
+# 부분 성공도 인정 (3/5 생성됨 등)
+```
+
+---
+
+## 🚀 배포 및 실행
+
+### PyInstaller 빌드
+
+```bash
+# 1. 의존성 설치
+pip install -r requirements.txt
+
+# 2. 빌드 (build.py 실행)
+python build/build.py
+
+# 3. 출력
+# contract_generator.exe (단일 파일, ~100MB)
+
+# 4. 배포
+# 사용자에게 .exe 파일 전달
+```
+
+### EXE 최적화
+
+- `--onefile` 옵션으로 단일 실행 파일
+- `--windowed` 옵션으로 콘솔 창 숨김
+- `--icon=resources/icon.ico` 아이콘 지정
+- 첫 실행 시 ~3초 (압축 해제)
+
+---
+
+## 📖 README.md 구성
+
+1. **설치 및 실행** (사용자용)
+   - EXE 다운로드
+   - 실행 방법 (더블클릭)
+   - 시스템 요구사항 (Windows 10+)
+
+2. **사용 가이드**
+   - 스크린샷 포함
+   - 단계별 작업 흐름
+   - 일반적인 문제 해결
+
+3. **개발자 가이드** (추가 개발 시)
+   - 환경 설정
+   - 모듈 구조
+   - 테스트 실행
+   - 빌드 방법
+
+4. **제한사항**
+   - 최대 파일 크기
+   - 플레이스홀더 형식 ({{반드시 중괄호 두 개}})
+   - HWPX 특수 서식 (복잡한 표 등) 주의
+
+---
+
+이제 Claude Code에서 **모든 소스 코드를 완전히 작성**할 준비가 되었습니다.
+
+다음 메시지에서 다음 순서로 생성하겠습니다:
+
+1. **requirements.txt** + 상수/헬퍼 함수
+2. **core/** 모듈 (Excel 읽기, HWPX 처리, 검증)
+3. **ui/** 모듈 (PySide6 GUI)
+4. **main.py** (진입점)
+5. **build.py** (PyInstaller 스크립트)
+6. **README.md** (완전한 사용자/개발자 문서)
+7. **테스트 코드** + 샘플 데이터
+
+혹시 특정 부분 변경이 필요하거나 추가 요청이 있으시면 말씀해 주세요!

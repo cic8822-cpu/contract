@@ -63,19 +63,43 @@ class HWPXProcessor:
     def _extract_placeholders(self) -> None:
         """템플릿에서 모든 플레이스홀더 추출
 
-        content.xml 파일을 읽고 플레이스홀더를 찾습니다.
+        HWPX 파일의 XML 파일들(Contents/*.xml)을 읽고 플레이스홀더를 찾습니다.
         """
         try:
             with zipfile.ZipFile(self.template_path, "r") as zip_file:
-                # content.xml 읽기
-                if HWPX_CONTENT_XML not in zip_file.namelist():
-                    warning(f"content.xml을 찾을 수 없습니다: {self.template_path}")
+                file_list = zip_file.namelist()
+                combined_content = ""
+
+                # 1. content.xml이 있는지 확인 (구형 HWPX)
+                if HWPX_CONTENT_XML in file_list:
+                    content_xml = zip_file.read(HWPX_CONTENT_XML).decode(XML_ENCODING)
+                    combined_content = content_xml
+                    debug("content.xml 사용 (구형 HWPX)")
+
+                # 2. Contents 디렉토리의 XML 파일들 (신형 HWPX)
+                contents_xml_files = [
+                    f
+                    for f in file_list
+                    if f.startswith("Contents/") and f.endswith(".xml")
+                ]
+                if contents_xml_files:
+                    debug(f"찾은 Contents XML 파일: {contents_xml_files}")
+                    for xml_file in contents_xml_files:
+                        try:
+                            xml_content = zip_file.read(xml_file).decode(XML_ENCODING)
+                            combined_content += xml_content
+                            debug(f"포함됨: {xml_file}")
+                        except Exception as e:
+                            warning(f"{xml_file} 읽기 실패: {e}")
+
+                if not combined_content:
+                    warning(
+                        f"읽을 수 있는 XML 파일을 찾을 수 없습니다: {self.template_path}"
+                    )
                     return
 
-                content_xml = zip_file.read(HWPX_CONTENT_XML).decode(XML_ENCODING)
-
                 # 플레이스홀더 추출
-                self.placeholders = extract_placeholders(content_xml)
+                self.placeholders = extract_placeholders(combined_content)
 
                 debug(f"추출된 플레이스홀더: {self.placeholders}")
 
@@ -134,16 +158,23 @@ class HWPXProcessor:
                 with zipfile.ZipFile(self.template_path, "r") as zip_file:
                     zip_file.extractall(temp_dir)
 
-                # 2. content.xml 수정
+                # 2. content.xml 수정 (구형 HWPX)
                 content_xml_path = Path(temp_dir) / HWPX_CONTENT_XML
-                self._replace_placeholders_in_file(content_xml_path, replacements)
+                if content_xml_path.exists():
+                    self._replace_placeholders_in_file(content_xml_path, replacements)
 
-                # 3. 필요시 styles.xml도 수정
+                # 3. Contents/*.xml 파일들 수정 (신형 HWPX)
+                contents_dir = Path(temp_dir) / "Contents"
+                if contents_dir.exists():
+                    for xml_file in contents_dir.glob("*.xml"):
+                        self._replace_placeholders_in_file(xml_file, replacements)
+
+                # 4. styles.xml 수정
                 styles_xml_path = Path(temp_dir) / HWPX_STYLES_XML
                 if styles_xml_path.exists():
                     self._replace_placeholders_in_file(styles_xml_path, replacements)
 
-                # 4. 수정된 파일들을 다시 ZIP으로 압축
+                # 5. 수정된 파일들을 다시 ZIP으로 압축
                 self._create_hwpx_file(temp_dir, output_path)
 
             info(f"문서 생성 완료: {output_path}")

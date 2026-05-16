@@ -18,7 +18,7 @@ def build_exe():
     print("=" * 70)
 
     # 프로젝트 디렉토리
-    project_dir = Path(__file__).parent.parent
+    project_dir = Path(__file__).parent  # build.py가 있는 현재 디렉토리
     dist_dir = project_dir / "dist"
     build_dir = project_dir / "build"
 
@@ -39,14 +39,17 @@ def build_exe():
         "contract_generator",  # EXE 이름
         "--distpath",
         str(dist_dir),  # 출력 경로
-        "--buildpath",
-        str(build_dir),  # 빌드 경로
+        "--workpath",
+        str(build_dir),  # 빌드 경로 (PyInstaller 6.0+)
         "--specpath",
         str(build_dir),  # spec 파일 경로
-        "--clean",  # 이전 빌드 정리
+        "-y",  # 이전 빌드 덮어쓰기
         # 숨겨진 import (필요한 경우)
         "--hidden-import=openpyxl",
         "--hidden-import=loguru",
+        # Qt 라이브러리 제외 (Tkinter 사용)
+        "--exclude-module=PyQt5",
+        "--exclude-module=PySide6",
         # 아이콘 (선택)
         # "--icon", str(project_dir / "resources" / "icon.ico"),
     ]
@@ -100,7 +103,7 @@ def build_exe():
 
 def clean_build():
     """이전 빌드 파일 정리"""
-    project_dir = Path(__file__).parent.parent
+    project_dir = Path(__file__).parent  # build.py가 있는 현재 디렉토리
 
     print("🧹 이전 빌드 파일 정리 중...")
 
